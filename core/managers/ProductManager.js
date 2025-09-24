@@ -6,7 +6,7 @@ class ProductManager {
         this.db = db.getConnection();
     }
 
-    // CREATE - Agregar producto
+    // Agregar producto
     addProduct(productData) {
         try {
             const product = new Product(
@@ -21,7 +21,7 @@ class ProductManager {
             );
 
             if (!product.isValid()) {
-                throw new Error('Datos del producto no válidos');
+                throw new Error('Datos del producto no validos');
             }
 
             const stmt = this.db.prepare(`
@@ -45,7 +45,7 @@ class ProductManager {
         }
     }
 
-    // READ - Obtener todos los productos
+    // Obtener todos los productos
     getAllProducts() {
         try {
             const stmt = this.db.prepare('SELECT * FROM productos WHERE activo = TRUE');
@@ -55,7 +55,7 @@ class ProductManager {
         }
     }
 
-    // READ - Obtener producto por ID
+    // Obtener producto por ID
     getProductById(id) {
         try {
             const stmt = this.db.prepare('SELECT * FROM productos WHERE id = ? AND activo = TRUE');
@@ -65,7 +65,7 @@ class ProductManager {
         }
     }
 
-    // UPDATE - Actualizar producto
+    // Actualizar producto
     updateProduct(id, updateData) {
         try {
             const fields = [];
@@ -93,7 +93,7 @@ class ProductManager {
         }
     }
 
-    // DELETE - Eliminar producto (soft delete)
+    // Eliminar producto (soft delete)
     deleteProduct(id) {
         try {
             const stmt = this.db.prepare('UPDATE productos SET activo = FALSE WHERE id = ?');
