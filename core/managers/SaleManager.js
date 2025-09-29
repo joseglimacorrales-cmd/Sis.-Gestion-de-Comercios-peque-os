@@ -200,7 +200,7 @@ class SaleManager {
         }
     }
 
-    // CANCELAR VENTA (para futuras implementaciones)
+    // CANCELAR VENTA
     cancelSale(ventaId) {
         try {
             this.db.exec('BEGIN TRANSACTION');
@@ -228,6 +228,100 @@ class SaleManager {
             throw new Error(`Error al cancelar venta: ${error.message}`);
         }
     }
+
+    // OBTENER VENTAS SEMANALES
+getWeeklySales() {
+    try {
+        const stmt = this.db.prepare(`
+            SELECT 
+                DATE(fecha_hora) as fecha,
+                COUNT(*) as total_ventas,
+                SUM(total) as ingresos_totales,
+                AVG(total) as promedio_por_venta,
+                SUM(pago_efectivo) as total_efectivo,
+                SUM(pago_tarjeta) as total_tarjeta,
+                SUM(pago_transferencia) as total_transferencia
+            FROM ventas 
+            WHERE fecha_hora >= DATE('now', '-7 days')
+            GROUP BY DATE(fecha_hora)
+            ORDER BY fecha DESC
+        `);
+        const ventasPorDia = stmt.all();
+
+        // Calcular totales de la semana
+        const totalSemana = ventasPorDia.reduce((acc, dia) => {
+            acc.totalVentas += dia.total_ventas;
+            acc.ingresosTotales += dia.ingresos_totales;
+            acc.totalEfectivo += dia.total_efectivo;
+            acc.totalTarjeta += dia.total_tarjeta;
+            acc.totalTransferencia += dia.total_transferencia;
+            return acc;
+        }, {
+            totalVentas: 0,
+            ingresosTotales: 0,
+            totalEfectivo: 0,
+            totalTarjeta: 0,
+            totalTransferencia: 0
+        });
+
+        return {
+            ventasPorDia: ventasPorDia,
+            totalesSemana: totalSemana
+        };
+
+    } catch (error) {
+        throw new Error(`Error al obtener ventas semanales: ${error.message}`);
+    }
+}
+
+// OBTENER VENTAS MENSUALES
+getMonthlySales() {
+    try {
+        const stmt = this.db.prepare(`
+            SELECT 
+                strftime('%Y-%m', fecha_hora) as mes,
+                COUNT(*) as total_ventas,
+                SUM(total) as ingresos_totales,
+                AVG(total) as promedio_por_venta,
+                SUM(pago_efectivo) as total_efectivo,
+                SUM(pago_tarjeta) as total_tarjeta,
+                SUM(pago_transferencia) as total_transferencia
+            FROM ventas 
+            WHERE fecha_hora >= DATE('now', '-30 days')
+            GROUP BY strftime('%Y-%m', fecha_hora)
+            ORDER BY mes DESC
+        `);
+        return stmt.all();
+
+    } catch (error) {
+        throw new Error(`Error al obtener ventas mensuales: ${error.message}`);
+    }
+}
+
+// OBTENER PRODUCTOS CON STOCK BAJO (para el PDF)
+getLowStockProductsByCategory() {
+    try {
+        const stmt = this.db.prepare(`
+            SELECT 
+                categoria,
+                nombre,
+                stock,
+                stock_minimo,
+                precio_compra,
+                precio_venta,
+                (stock_minimo - stock) as faltante
+            FROM productos 
+            WHERE stock <= stock_minimo 
+                AND activo = TRUE
+            ORDER BY categoria, faltante DESC
+        `);
+        return stmt.all();
+
+    } catch (error) {
+        throw new Error(`Error al obtener productos con stock bajo: ${error.message}`);
+    }
+}
+
 }
 
 module.exports = SaleManager;

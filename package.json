@@ -27,6 +27,7 @@
   "dependencies": {
     "better-sqlite3": "^12.2.0",
     "inquirer": "^12.9.4",
+    "pdfkit": "^0.17.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -37,5 +38,4 @@
     "json-server": "^1.0.0-beta.3",
     "nodemon": "^3.1.10"
   }
-  
 }

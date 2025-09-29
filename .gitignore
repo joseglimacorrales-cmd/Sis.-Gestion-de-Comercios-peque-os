@@ -6,6 +6,10 @@ database/tienda.db
 *.db
 *.sqlite3
 
+# Reports y archivos generados
+reports/
+*.pdf
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
