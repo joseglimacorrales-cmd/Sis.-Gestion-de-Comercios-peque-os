@@ -5,7 +5,7 @@ const fs = require('fs');
 class DatabaseHandler {
     constructor() {
         // Ruta a la base de datos (se crea automaticamente si no existe)
-        this.dbPath = path.join(__dirname, '../../database/tienda.db');
+        this.dbPath = path.join(__dirname, '../database/tienda.db');
         
         // Asegurar que la carpeta database existe
         const dbDir = path.dirname(this.dbPath);

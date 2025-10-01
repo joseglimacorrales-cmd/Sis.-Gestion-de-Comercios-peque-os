@@ -3,6 +3,8 @@ node_modules
 
 # Database
 database/tienda.db
+database/tienda.db-shm
+database/tienda.db-wal
 *.db
 *.sqlite3
 

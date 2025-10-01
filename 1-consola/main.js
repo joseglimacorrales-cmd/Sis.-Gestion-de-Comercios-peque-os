@@ -409,7 +409,6 @@ async generarPDFbajoStock() {
     this.mostrarMenuPrincipal();
 }
 
-// 📊 VER PRODUCTOS MÁS VENDIDOS
 verProductosMasVendidos() {
     console.log('\n🏆 --- PRODUCTOS MÁS VENDIDOS ---');
     try {
@@ -433,11 +432,10 @@ verProductosMasVendidos() {
     this.mostrarMenuPrincipal();
 }
 
-// 📈 VER ESTADÍSTICAS AVANZADAS
 verEstadisticasAvanzadas() {
     console.log('\n📈 --- ESTADÍSTICAS AVANZADAS ---');
     try {
-        const estadisticas = this.saleManager.getSalesStats(30); // Últimos 30 días
+        const estadisticas = this.saleManager.getSalesStats(30);
         
         if (estadisticas.length === 0) {
             console.log('📊 No hay suficientes datos para estadísticas');
@@ -463,7 +461,6 @@ verEstadisticasAvanzadas() {
                 }
             });
             
-            // Resumen general
             console.log('\n📋 RESUMEN GENERAL:');
             console.log(`   📅 Días con ventas: ${estadisticas.length}`);
             console.log(`   🛍️ Total de ventas: ${totalVentas}`);
@@ -477,11 +474,9 @@ verEstadisticasAvanzadas() {
     this.mostrarMenuPrincipal();
 }
 
-// ❌ CANCELAR VENTA
 cancelarVenta() {
     console.log('\n❌ --- CANCELAR VENTA ---');
     try {
-        // Mostrar ventas recientes
         const ventasRecientes = this.saleManager.getTodaySales();
         
         if (ventasRecientes.length === 0) {
@@ -499,7 +494,6 @@ cancelarVenta() {
         this.rl.question('\n🆔 ID de la venta a cancelar: ', (idVenta) => {
             const ventaId = parseInt(idVenta);
             
-            // Verificar que la venta existe
             const detalleVenta = this.saleManager.getSaleDetail(ventaId);
             if (!detalleVenta) {
                 console.log('❌ Venta no encontrada');
