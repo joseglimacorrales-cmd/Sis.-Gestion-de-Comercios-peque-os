@@ -1,0 +1,46 @@
+{
+  "name": "repositorio",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/joseglimacorrales-cmd/Sis.-Gestion-de-Comercios-peque-os#readme",
+  "bugs": {
+    "url": "https://github.com/joseglimacorrales-cmd/Sis.-Gestion-de-Comercios-peque-os/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joseglimacorrales-cmd/Sis.-Gestion-de-Comercios-peque-os.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "3-desktop/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "consola": "node 1-consola/main.js",
+    "tui": "node 2-tui/main.js",
+    "desktop": "electron .",
+    "web": "http-server 4-web -p 3000",
+    "api": "json-server --watch database/db.json --port 3001",
+    "dev": "nodemon 1-consola/main.js",
+    "start": "npm run consola"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "chalk": "^4.1.2",
+    "emoji-regex": "^10.6.0",
+    "inquirer": "^12.9.4",
+    "pdfkit": "^0.17.2",
+    "string-width": "^8.1.0",
+    "strip-ansi": "^7.1.2",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12",
+    "electron-rebuild": "^3.2.9",
+    "http-server": "^14.1.1",
+    "json-server": "^1.0.0-beta.3",
+    "nodemon": "^3.1.10"
+  }
+}
