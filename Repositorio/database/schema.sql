@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS detalle_ventas (
     FOREIGN KEY (producto_id) REFERENCES productos (id) ON DELETE CASCADE
 );
 
--- Índices para mejorar el rendimiento
+-- Indices para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_productos_nombre ON productos(nombre);
 CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria);
 CREATE INDEX IF NOT EXISTS idx_ventas_fecha ON ventas(fecha_hora);

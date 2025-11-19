@@ -119,11 +119,7 @@ class TUIApp {
     this.forceClear();
   }
 
-
-  // ======================
-  // MENÚ PRINCIPAL
-  // ======================
-
+  // MENU PRINCIPAL
   async showMainMenu() {
     this.clearScreen('TIENDA DE BARRIO - TUI');
 
@@ -158,10 +154,7 @@ class TUIApp {
     }
   }
 
-  // ======================
   // PRODUCTOS
-  // ======================
-
   async showProductsMenu() {
     this.clearScreen('GESTIÓN DE PRODUCTOS');
 
@@ -724,11 +717,7 @@ class TUIApp {
     await this.showProductsMenu();
   }
 
-
-  // ======================
   // VENTAS
-  // ======================
-
   async showSalesMenu() {
     this.clearScreen('SISTEMA DE VENTAS');
 
@@ -1109,10 +1098,7 @@ class TUIApp {
     }
   }
 
-  // ======================
   // REPORTES
-  // ======================
-
   async showReportsMenu() {
     this.clearScreen('REPORTES Y ESTADÍSTICAS');
 
@@ -1150,10 +1136,7 @@ class TUIApp {
     await this.showReportsMenu();
   }
 
-  // ======================
   // SALIR
-  // ======================
-
   salir() {
     this.forceClear();
     console.log(chalk.green('\n👋 ¡Gracias por usar el sistema! Hasta pronto.\n'));

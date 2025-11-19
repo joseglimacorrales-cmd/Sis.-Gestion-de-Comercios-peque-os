@@ -4,7 +4,7 @@ const fs = require('fs');
 
 class DatabaseHandler {
     constructor() {
-        // Ruta a la base de datos (se crea automaticamente si no existe)
+        // Ruta a la base de datos
         this.dbPath = path.join(__dirname, '../database/tienda.db');
         
         // Asegurar que la carpeta database existe
@@ -95,12 +95,12 @@ class DatabaseHandler {
         }
     }
 
-    // Método para obtener la conexión a la base de datos
+    // Metodo para obtener la conexion a la base de datos
     getConnection() {
         return this.db;
     }
 
-    // Cerrar la conexión
+    // Cerrar la conexion
     close() {
         if (this.db) {
             this.db.close();
@@ -108,7 +108,7 @@ class DatabaseHandler {
         }
     }
 
-    // Método para hacer backups
+    // Metodo para hacer backups
     backup(backupPath = null) {
         const backupDir = backupPath || path.join(__dirname, '../../database/backups');
         if (!fs.existsSync(backupDir)) {
@@ -128,5 +128,5 @@ class DatabaseHandler {
     }
 }
 
-// Exportar una única instancia (singleton)
+// Exportar una unica instancia (singleton)
 module.exports = new DatabaseHandler();

@@ -7,10 +7,10 @@ class SaleManager {
         this.db = db.getConnection();
     }
 
-    // REGISTRAR VENTA - Método principal
+    // REGISTRAR VENTA - MEtodo principal
     registerSale(productosVenta, metodoPago, montoRecibido) {
         try {
-            // Validaciones básicas
+            // Validaciones basicas
             if (!productosVenta || productosVenta.length === 0) {
                 throw new Error('La venta debe incluir al menos un producto');
             }
@@ -19,7 +19,7 @@ class SaleManager {
                 throw new Error('El monto recibido debe ser mayor a 0');
             }
 
-            // Usar tu modelo Sale para cálculos
+            // Usar modelo Sale para calculos
             const sale = new Sale();
             sale.productos = productosVenta;
             sale.calcularTotal();
@@ -34,7 +34,7 @@ class SaleManager {
                 throw new Error(`Monto insuficiente. Total: Bs.${sale.total}, Recibido: Bs.${montoRecibido}`);
             }
 
-            // INICIAR TRANSACCIÓN
+            // INICIAR TRANSACCION
             this.db.exec('BEGIN TRANSACTION');
 
             try {
@@ -65,7 +65,7 @@ class SaleManager {
                 `);
 
                 for (const item of productosVenta) {
-                    // Verificar stock nuevamente (por si cambió durante la transacción)
+                    // Verificar stock nuevamente (por si cambio durante la transacción)
                     const productStmt = this.db.prepare('SELECT stock FROM productos WHERE id = ?');
                     const product = productStmt.get(item.productoId);
                     
@@ -84,7 +84,7 @@ class SaleManager {
                     }
                 }
 
-                // CONFIRMAR TRANSACCIÓN
+                // CONFIRMAR TRANSACCION
                 this.db.exec('COMMIT');
 
                 return {
@@ -106,7 +106,7 @@ class SaleManager {
         }
     }
 
-    // OBTENER VENTAS DEL DÍA
+    // OBTENER VENTAS DEL DIA
     getTodaySales() {
         try {
             const stmt = this.db.prepare(`
@@ -130,7 +130,7 @@ class SaleManager {
     // OBTENER DETALLE DE UNA VENTA
     getSaleDetail(ventaId) {
         try {
-            // Información de la venta
+            // Informacion de la venta
             const ventaStmt = this.db.prepare('SELECT * FROM ventas WHERE id = ?');
             const venta = ventaStmt.get(ventaId);
 
@@ -159,7 +159,7 @@ class SaleManager {
         }
     }
 
-    // OBTENER PRODUCTOS MÁS VENDIDOS
+    // OBTENER PRODUCTOS MAS VENDIDOS
     getTopSellingProducts(limit = 5) {
         try {
             const stmt = this.db.prepare(`

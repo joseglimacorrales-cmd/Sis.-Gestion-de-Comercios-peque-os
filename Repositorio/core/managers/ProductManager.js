@@ -93,7 +93,7 @@ class ProductManager {
         }
     }
 
-    // Eliminar producto (soft delete)
+    // Eliminar producto
     deleteProduct(id) {
         try {
             const stmt = this.db.prepare('UPDATE productos SET activo = FALSE WHERE id = ?');
