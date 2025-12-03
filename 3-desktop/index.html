@@ -348,6 +348,27 @@
 
     <script src="renderer.js"></script>
 
+    
+    <!-- MODAL UNIVERSAL DE ALERTA -->
+    <div id="alert-modal-backdrop" class="modal-backdrop hidden">
+      <div id="alert-modal" class="modal modal-small alert-variant-info">
+        <div class="modal-header alert-modal-header">
+          <div class="alert-modal-title-row">
+            <span id="alert-modal-icon" class="alert-modal-icon">ℹ️</span>
+            <h2 id="alert-modal-title">Mensaje</h2>
+          </div>
+          <p id="alert-modal-text" class="modal-subtitle"></p>
+        </div>
+
+        <div class="modal-footer modal-footer-center">
+          <button type="button" class="btn btn-primary" id="alert-modal-ok">
+            Aceptar
+          </button>
+        </div>
+      </div>
+    </div>
+
+
     <!-- MODAL EDITAR PRODUCTO -->
     <div id="edit-modal-backdrop" class="modal-backdrop hidden">
       <div class="modal">
@@ -415,8 +436,6 @@
         </form>
       </div>
     </div>
-  </body>
-</html>
 
 
     <!-- MODAL CONFIRMAR SALIDA -->
@@ -461,3 +480,6 @@
     </div>
   </div>
 </div>
+
+  </body>
+</html>

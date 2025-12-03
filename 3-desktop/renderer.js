@@ -37,7 +37,11 @@ async function initProductsScreen() {
 
     // Validaciones sencillas
     if (!data.nombre.trim()) {
-      alert("El nombre no puede estar vacío.");
+      alertModal.open(
+        "warning",
+        "Validación",
+        "El nombre no puede estar vacío."
+      );
       return;
     }
 
@@ -53,7 +57,7 @@ async function initProductsScreen() {
       });
 
       if (!res.ok) {
-        alert("Error: " + res.error);
+        alertModal.open("error", "Error", "Error: " + res.error);
         return;
       }
 
@@ -63,7 +67,11 @@ async function initProductsScreen() {
       form.stock_minimo.value = 5;
       await loadProductsTable(); // refrescar tabla
     } catch (err) {
-      alert("Error inesperado: " + err.message);
+      alertModal.open(
+        "error",
+        "Error inesperado",
+        "Error inesperado: " + err.message
+      );
     }
   });
 
@@ -92,7 +100,7 @@ async function loadProductsTable(options = {}) {
   const tbody = document.getElementById("products-tbody");
   tbody.innerHTML = `<tr><td colspan="8">Cargando...</td></tr>`;
 
-  if (!allProductsCache.length || !options.search && !options.lowStockOnly) {
+  if (!allProductsCache.length || (!options.search && !options.lowStockOnly)) {
     const res = await window.api.products.getAll();
     if (!res.ok) {
       tbody.innerHTML = `<tr><td colspan="8" style="color:#f97373">Error: ${res.error}</td></tr>`;
@@ -109,9 +117,7 @@ async function loadProductsTable(options = {}) {
 
   if (options.search && options.search.trim()) {
     const term = options.search.toLowerCase();
-    productos = productos.filter((p) =>
-      p.nombre.toLowerCase().includes(term)
-    );
+    productos = productos.filter((p) => p.nombre.toLowerCase().includes(term));
   }
 
   if (!productos.length) {
@@ -166,7 +172,6 @@ window.deleteProduct = function (id) {
   backdrop.classList.remove("hidden");
 };
 
-
 let editingProductId = null;
 
 function setupEditModal() {
@@ -197,7 +202,11 @@ function setupEditModal() {
 
     const res = await window.api.products.update(editingProductId, changes);
     if (!res.ok) {
-      alert("Error al actualizar: " + res.error);
+      alertModal.open(
+        "error",
+        "Error al actualizar",
+        "Error al actualizar: " + res.error
+      );
       return;
     }
 
@@ -213,7 +222,11 @@ window.editProduct = async function (id) {
 
   const res = await window.api.products.getById(id);
   if (!res.ok || !res.data) {
-    alert("No se pudo cargar el producto: " + (res.error || ""));
+    alertModal.open(
+      "error",
+      "Error",
+      "No se pudo cargar el producto: " + (res.error || "")
+    );
     editingProductId = null;
     return;
   }
@@ -267,7 +280,9 @@ async function initSalesScreen() {
   ventaProductsCache.forEach((p) => {
     const opt = document.createElement("option");
     opt.value = p.id;
-    opt.textContent = `#${p.id} ${p.nombre} — ${formatBs(p.precio_venta)} (Stock: ${p.stock})`;
+    opt.textContent = `#${p.id} ${p.nombre} — ${formatBs(
+      p.precio_venta
+    )} (Stock: ${p.stock})`;
     select.appendChild(opt);
   });
 
@@ -330,11 +345,15 @@ function handleAgregarItemVenta(e) {
 
   const p = ventaProductsCache.find((x) => x.id === id);
   if (!p) {
-    alert("Producto no encontrado");
+    alertModal.open("error", "Error", "Producto no encontrado.");
     return;
   }
   if (cantidad <= 0 || cantidad > p.stock) {
-    alert(`Cantidad inválida. Debe ser >0 y ≤ ${p.stock}`);
+    alertModal.open(
+      "warning",
+      "Cantidad inválida",
+      `Cantidad inválida. Debe ser >0 y ≤ ${p.stock}`
+    );
     return;
   }
 
@@ -354,7 +373,7 @@ function handleAgregarItemVenta(e) {
 async function handleRegistrarVenta(e) {
   e.preventDefault();
   if (!ventaItems.length) {
-    alert("La venta no tiene productos.");
+    alertModal.open("warning", "Venta vacía", "La venta no tiene productos.");
     return;
   }
 
@@ -363,18 +382,30 @@ async function handleRegistrarVenta(e) {
   const monto = Number(document.getElementById("venta-monto").value || 0);
 
   if (monto < total) {
-    alert(`Monto insuficiente. Total: ${formatBs(total)}`);
+    alertModal.open(
+      "warning",
+      "Monto insuficiente",
+      `Monto insuficiente. Total: ${formatBs(total)}`
+    );
     return;
   }
 
   const res = await window.api.sales.register(ventaItems, metodo, monto);
   if (!res.ok) {
-    alert("Error al registrar venta: " + res.error);
+    alertModal.open(
+      "error",
+      "Error al registrar venta",
+      "Error al registrar venta: " + res.error
+    );
     return;
   }
 
   const cambio = monto - total;
-  alert(`Venta registrada correctamente.\nCambio: ${formatBs(cambio)}`);
+  alertModal.open(
+    "success",
+    "Venta registrada",
+    `Venta registrada correctamente.\nCambio: ${formatBs(cambio)}`
+  );
 
   // Limpiar carrito
   ventaItems = [];
@@ -561,7 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Conectando con la base de datos...",
     "Cargando productos y ventas...",
     "Acomodando las góndolas virtuales...",
-    "Listo, preparando la caja..."
+    "Listo, preparando la caja...",
   ];
 
   // Cambiar mensajes cada cierto tiempo
@@ -643,7 +674,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const res = await window.api.products.delete(id);
     if (!res.ok) {
-      alert("Error al eliminar: " + res.error); // si quieres luego también lo cambiamos por un toast bonito
+      alertModal.open(
+        "error",
+        "Error al eliminar",
+        "Error al eliminar: " + res.error
+      );
       closeModal();
       return;
     }
@@ -656,3 +691,80 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// ======================= MODAL UNIVERSAL ALERT =======================
+
+const alertModal = {
+  open(type = "info", title = "Mensaje", message = "") {
+    const backdrop = document.getElementById("alert-modal-backdrop");
+    const modal = document.getElementById("alert-modal");
+    const titleEl = document.getElementById("alert-modal-title");
+    const textEl = document.getElementById("alert-modal-text");
+    const iconEl = document.getElementById("alert-modal-icon");
+
+    if (!backdrop || !modal || !titleEl || !textEl) {
+      // Fallback por si algo falla: usar alert nativo
+      window.alert(message || title);
+      return;
+    }
+
+    // Limpiar clases de variante
+    modal.classList.remove(
+      "alert-variant-info",
+      "alert-variant-success",
+      "alert-variant-warning",
+      "alert-variant-error"
+    );
+
+    const variantClass =
+      {
+        info: "alert-variant-info",
+        success: "alert-variant-success",
+        warning: "alert-variant-warning",
+        error: "alert-variant-error",
+      }[type] || "alert-variant-info";
+
+    modal.classList.add(variantClass);
+
+    // Icono según tipo
+    if (iconEl) {
+      const icon =
+        {
+          info: "ℹ️",
+          success: "✅",
+          warning: "⚠️",
+          error: "⛔",
+        }[type] || "ℹ️";
+      iconEl.textContent = icon;
+    }
+
+    titleEl.textContent = title;
+    textEl.textContent = message;
+
+    backdrop.classList.remove("hidden");
+  },
+
+  close() {
+    const backdrop = document.getElementById("alert-modal-backdrop");
+    if (backdrop) {
+      backdrop.classList.add("hidden");
+    }
+  },
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const okBtn = document.getElementById("alert-modal-ok");
+  const backdrop = document.getElementById("alert-modal-backdrop");
+
+  if (okBtn) {
+    okBtn.addEventListener("click", () => alertModal.close());
+  }
+
+  // Cerrar al hacer click fuera del cuadro
+  if (backdrop) {
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) {
+        alertModal.close();
+      }
+    });
+  }
+});
