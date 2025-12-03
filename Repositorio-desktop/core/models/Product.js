@@ -14,12 +14,12 @@ class Product {
         this.fechaCreacion = new Date();
     }
 
-    // Método para validar el producto
+    // Metodo para validar el producto
     isValid() {
         return this.nombre && this.precioCompra > 0 && this.precioVenta > 0 && this.stock >= 0;
     }
 
-    // Método para verificar stock bajo
+    // Metodo para verificar stock bajo
     hasLowStock() {
         return this.stock <= this.stockMinimo;
     }

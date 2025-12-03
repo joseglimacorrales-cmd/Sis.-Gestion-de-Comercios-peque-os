@@ -20,7 +20,7 @@ class DatabaseHandler {
         this.db.pragma('foreign_keys = ON');
         this.db.pragma('journal_mode = WAL');
         
-        console.log('✅ Base de datos conectada:', this.dbPath);
+        console.log('Base de datos conectada:', this.dbPath);
         this.initDatabase();
     }
 
@@ -87,10 +87,10 @@ class DatabaseHandler {
 
             // Ejecutar el schema
             this.db.exec(schemaSQL);
-            console.log('✅ Tablas de la base de datos inicializadas');
+            console.log('Tablas de la base de datos inicializadas');
 
         } catch (error) {
-            console.error('❌ Error al inicializar la base de datos:', error.message);
+            console.error('Error al inicializar la base de datos:', error.message);
             throw error;
         }
     }
@@ -104,7 +104,7 @@ class DatabaseHandler {
     close() {
         if (this.db) {
             this.db.close();
-            console.log('✅ Conexión a la base de datos cerrada');
+            console.log('Conexión a la base de datos cerrada');
         }
     }
 
@@ -120,10 +120,10 @@ class DatabaseHandler {
 
         this.db.backup(backupFile)
             .then(() => {
-                console.log('✅ Backup creado:', backupFile);
+                console.log('Backup creado:', backupFile);
             })
             .catch((error) => {
-                console.error('❌ Error creando backup:', error);
+                console.error('Error creando backup:', error);
             });
     }
 }

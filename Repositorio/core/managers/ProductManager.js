@@ -1,9 +1,10 @@
+// core/managers/ProductManager.js
 const Product = require('../models/Product');
-const db = require('../../database/Database');
+const ProductORM = require('../orm/ProductORM');
 
 class ProductManager {
     constructor() {
-        this.db = db.getConnection();
+        // Ya no necesitamos this.db aquí
     }
 
     // Agregar producto
@@ -24,22 +25,8 @@ class ProductManager {
                 throw new Error('Datos del producto no validos');
             }
 
-            const stmt = this.db.prepare(`
-                INSERT INTO productos (nombre, precio_compra, precio_venta, stock, categoria, codigo_barras, stock_minimo)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            `);
-
-            const result = stmt.run(
-                product.nombre,
-                product.precioCompra,
-                product.precioVenta,
-                product.stock,
-                product.categoria,
-                product.codigoBarras,
-                product.stockMinimo
-            );
-
-            return this.getProductById(result.lastInsertRowid);
+            // Persistencia a través del ORM
+            return ProductORM.insert(product);
         } catch (error) {
             throw new Error(`Error al agregar producto: ${error.message}`);
         }
@@ -48,8 +35,7 @@ class ProductManager {
     // Obtener todos los productos
     getAllProducts() {
         try {
-            const stmt = this.db.prepare('SELECT * FROM productos WHERE activo = TRUE');
-            return stmt.all();
+            return ProductORM.findAllActive();
         } catch (error) {
             throw new Error(`Error al obtener productos: ${error.message}`);
         }
@@ -58,8 +44,7 @@ class ProductManager {
     // Obtener producto por ID
     getProductById(id) {
         try {
-            const stmt = this.db.prepare('SELECT * FROM productos WHERE id = ? AND activo = TRUE');
-            return stmt.get(id);
+            return ProductORM.findById(id);
         } catch (error) {
             throw new Error(`Error al obtener producto: ${error.message}`);
         }
@@ -68,37 +53,16 @@ class ProductManager {
     // Actualizar producto
     updateProduct(id, updateData) {
         try {
-            const fields = [];
-            const values = [];
-
-            Object.keys(updateData).forEach(key => {
-                if (updateData[key] !== undefined) {
-                    fields.push(`${key} = ?`);
-                    values.push(updateData[key]);
-                }
-            });
-
-            if (fields.length === 0) {
-                throw new Error('No hay datos para actualizar');
-            }
-
-            values.push(id);
-            const query = `UPDATE productos SET ${fields.join(', ')} WHERE id = ?`;
-            const stmt = this.db.prepare(query);
-            stmt.run(...values);
-
-            return this.getProductById(id);
+            return ProductORM.update(id, updateData);
         } catch (error) {
             throw new Error(`Error al actualizar producto: ${error.message}`);
         }
     }
 
-    // Eliminar producto
+    // Eliminar producto (soft delete)
     deleteProduct(id) {
         try {
-            const stmt = this.db.prepare('UPDATE productos SET activo = FALSE WHERE id = ?');
-            stmt.run(id);
-            return true;
+            return ProductORM.softDelete(id);
         } catch (error) {
             throw new Error(`Error al eliminar producto: ${error.message}`);
         }
@@ -107,8 +71,7 @@ class ProductManager {
     // Obtener productos con stock bajo
     getLowStockProducts() {
         try {
-            const stmt = this.db.prepare('SELECT * FROM productos WHERE stock <= stock_minimo AND activo = TRUE');
-            return stmt.all();
+            return ProductORM.findLowStock();
         } catch (error) {
             throw new Error(`Error al obtener productos con stock bajo: ${error.message}`);
         }

@@ -5,7 +5,42 @@
     <title>Tienda de Barrio - Desktop</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
+
   <body>
+    <!-- VIDEO DE FONDO -->
+    <video id="bg-video" autoplay muted loop playsinline>
+      <source src="../assets/bg-waves.mp4" type="video/mp4" />
+    </video>
+
+    <!-- SPLASH SCREEN / PANTALLA DE INICIO -->
+  <div id="splash-screen">
+  <div class="splash-card">
+    <div class="splash-orbit">
+      <div class="splash-orbit-ring"></div>
+      <div class="splash-orbit-glow"></div>
+      <div class="splash-logo">
+        🛒
+      </div>
+    </div>
+
+    <h1 class="splash-title">Bienvenido al sistema</h1>
+
+    <p id="splash-subtitle" class="splash-subtitle">
+      Preparando todo para empezar...
+    </p>
+
+    <div class="splash-loading">
+      <div class="splash-loading-bar">
+        <div class="splash-loading-bar-inner"></div>
+      </div>
+      <div class="splash-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
     <div class="app">
       <!-- SIDEBAR -->
       <aside class="sidebar">
@@ -29,6 +64,10 @@
           <button class="nav-item" data-screen="reportes">
             <span class="nav-item-icon">📊</span>
             Reportes
+          </button>
+          <button class="nav-item nav-item-exit" id="btn-exit">
+          <span class="nav-item-icon">🚪</span>
+          Salir del sistema
           </button>
         </nav>
       </aside>
@@ -77,12 +116,22 @@
 
               <div class="form-group">
                 <label>Precio compra (Bs.)</label>
-                <input name="precio_compra" type="number" step="0.01" required />
+                <input
+                  name="precio_compra"
+                  type="number"
+                  step="0.01"
+                  required
+                />
               </div>
 
               <div class="form-group">
                 <label>Stock mínimo</label>
-                <input name="stock_minimo" type="number" min="0" value="5" />
+                <input
+                  name="stock_minimo"
+                  type="number"
+                  min="0"
+                  value="5"
+                />
               </div>
 
               <div class="form-group form-group-full">
@@ -148,77 +197,267 @@
           </section>
         </section>
 
-        <!-- PANTALLAS FUTURAS -->
+        <!-- VENTAS -->
         <section id="screen-ventas" class="screen">
-          <div class="card">
-            <h2>Sistema de Ventas</h2>
-            <p>Aquí irán las pantallas de ventas.</p>
+          <div class="cards-grid">
+            <div class="card">
+              <h2>Registrar venta</h2>
+              <p>Selecciona productos, define el pago y registra la venta.</p>
+
+              <div class="venta-form-grid">
+                <div class="form-group">
+                  <label>Producto</label>
+                  <select id="venta-producto-select"></select>
+                </div>
+                <div class="form-group">
+                  <label>Cantidad</label>
+                  <input
+                    id="venta-cantidad-input"
+                    type="number"
+                    min="1"
+                    value="1"
+                  />
+                </div>
+                <div class="form-group">
+                  <button id="btn-venta-agregar" class="btn btn-secondary">
+                    ➕ Agregar al carrito
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cant.</th>
+                      <th>Precio</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="venta-items-tbody">
+                    <tr>
+                      <td colspan="5">No hay productos en la venta.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="venta-resumen">
+                <div>
+                  <strong>Total:</strong>
+                  <span id="venta-total">Bs.0.00</span>
+                </div>
+
+                <div class="form-group">
+                  <label>Método de pago</label>
+                  <select id="venta-metodo">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                    <option value="transferencia">Transferencia</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Monto recibido</label>
+                  <input
+                    id="venta-monto"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                <button id="btn-venta-registrar" class="btn btn-primary">
+                  💾 Registrar venta
+                </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header card-header-row">
+                <div>
+                  <h2>Ventas del día</h2>
+                  <p>Resumen de las ventas registradas hoy.</p>
+                </div>
+                <button
+                  id="btn-ventas-hoy-refrescar"
+                  class="btn btn-secondary"
+                >
+                  🔄 Refrescar
+                </button>
+              </div>
+              <div id="ventas-hoy-lista" class="ventas-lista"></div>
+            </div>
           </div>
         </section>
 
+        <!-- REPORTES -->
         <section id="screen-reportes" class="screen">
-          <div class="card">
-            <h2>Reportes y estadísticas</h2>
-            <p>Aquí irán los reportes.</p>
+          <div class="cards-grid">
+            <div class="card">
+              <h2>Top productos</h2>
+              <p>Productos más vendidos.</p>
+              <button id="btn-report-top" class="btn btn-secondary">
+                Ver top 10
+              </button>
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Producto</th>
+                      <th>Categoría</th>
+                      <th>Unidades</th>
+                      <th>Ingresos</th>
+                    </tr>
+                  </thead>
+                  <tbody id="report-top-tbody">
+                    <tr>
+                      <td colspan="5">Sin datos.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Estadísticas (30 días)</h2>
+              <button id="btn-report-stats" class="btn btn-secondary">
+                Ver estadísticas
+              </button>
+              <div id="report-stats-container" class="report-box"></div>
+            </div>
+
+            <div class="card">
+              <h2>PDF Stock Bajo</h2>
+              <p>
+                Genera un PDF con los productos que tienen stock por debajo del
+                mínimo.
+              </p>
+              <button id="btn-report-pdf-low" class="btn btn-warning">
+                📄 Generar PDF
+              </button>
+              <div id="report-pdf-status" class="report-box small"></div>
+            </div>
           </div>
         </section>
       </main>
     </div>
 
     <script src="renderer.js"></script>
+
+    <!-- MODAL EDITAR PRODUCTO -->
+    <div id="edit-modal-backdrop" class="modal-backdrop hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Editar producto</h2>
+          <p id="edit-modal-subtitle" class="modal-subtitle"></p>
+        </div>
+
+        <form id="edit-product-form">
+          <div class="modal-body modal-grid">
+            <div class="form-group form-group-full">
+              <label>Nombre</label>
+              <input name="edit_nombre" type="text" required />
+            </div>
+
+            <div class="form-group">
+              <label>Categoría</label>
+              <input name="edit_categoria" type="text" />
+            </div>
+
+            <div class="form-group">
+              <label>Precio venta (Bs.)</label>
+              <input
+                name="edit_precio_venta"
+                type="number"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Precio compra (Bs.)</label>
+              <input
+                name="edit_precio_compra"
+                type="number"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Stock</label>
+              <input name="edit_stock" type="number" min="0" required />
+            </div>
+
+            <div class="form-group">
+              <label>Stock mínimo</label>
+              <input name="edit_stock_minimo" type="number" min="0" />
+            </div>
+
+            <div class="form-group form-group-full">
+              <label>Código de barras (opcional)</label>
+              <input name="edit_codigo_barras" type="text" />
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn" id="btn-edit-cancel">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              💾 Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </body>
-<!-- MODAL EDITAR PRODUCTO -->
-<div id="edit-modal-backdrop" class="modal-backdrop hidden">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Editar producto</h2>
-      <p id="edit-modal-subtitle" class="modal-subtitle"></p>
+</html>
+
+
+    <!-- MODAL CONFIRMAR SALIDA -->
+    <div id="exit-modal-backdrop" class="modal-backdrop hidden">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>¿Cerrar el sistema?</h2>
+          <p class="modal-subtitle">
+            Se cerrará la aplicación "Tienda de Barrio".  
+            Asegúrate de haber guardado tus cambios.
+          </p>
+        </div>
+
+        <div class="modal-footer modal-footer-center">
+          <button type="button" class="btn" id="btn-exit-cancel">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-danger" id="btn-exit-confirm">
+            ⏻ Sí, salir
+          </button>
+        </div>
+      </div>
     </div>
 
-    <form id="edit-product-form">
-      <div class="modal-body modal-grid">
-        <div class="form-group form-group-full">
-          <label>Nombre</label>
-          <input name="edit_nombre" type="text" required />
-        </div>
+    <!-- MODAL ELIMINAR PRODUCTO -->
+<div id="delete-modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal modal-small">
+    <div class="modal-header">
+      <h2>Eliminar producto</h2>
+      <p class="modal-subtitle" id="delete-modal-text">
+        ¿Seguro que deseas eliminar este producto?
+      </p>
+    </div>
 
-        <div class="form-group">
-          <label>Categoría</label>
-          <input name="edit_categoria" type="text" />
-        </div>
-
-        <div class="form-group">
-          <label>Precio venta (Bs.)</label>
-          <input name="edit_precio_venta" type="number" step="0.01" required />
-        </div>
-
-        <div class="form-group">
-          <label>Precio compra (Bs.)</label>
-          <input name="edit_precio_compra" type="number" step="0.01" required />
-        </div>
-
-        <div class="form-group">
-          <label>Stock</label>
-          <input name="edit_stock" type="number" min="0" required />
-        </div>
-
-        <div class="form-group">
-          <label>Stock mínimo</label>
-          <input name="edit_stock_minimo" type="number" min="0" />
-        </div>
-
-        <div class="form-group form-group-full">
-          <label>Código de barras (opcional)</label>
-          <input name="edit_codigo_barras" type="text" />
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn" id="btn-edit-cancel">Cancelar</button>
-        <button type="submit" class="btn btn-primary">💾 Guardar cambios</button>
-      </div>
-    </form>
+    <div class="modal-footer modal-footer-center">
+      <button type="button" class="btn" id="btn-delete-cancel">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" id="btn-delete-confirm">
+        🗑️ Eliminar
+      </button>
+    </div>
   </div>
 </div>
-
-</html>
