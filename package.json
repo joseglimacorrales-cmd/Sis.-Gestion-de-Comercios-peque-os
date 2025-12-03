@@ -30,6 +30,8 @@
     "emoji-regex": "^10.6.0",
     "inquirer": "^12.9.4",
     "pdfkit": "^0.17.2",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7",
     "string-width": "^8.1.0",
     "strip-ansi": "^7.1.2",
     "uuid": "^13.0.0"

@@ -1,6 +1,7 @@
 const inquirer = require('inquirer').default;
 const ProductManager = require('../core/managers/ProductManager');
 const SaleManager = require('../core/managers/SaleManager');
+const { initDatabase } = require('../core/models');
 
 const stripAnsiImport = require('strip-ansi');
 const stringWidthImport = require('string-width');
@@ -18,7 +19,6 @@ function visualWidth(text) {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
 
 class TUIApp {
   constructor() {
@@ -107,7 +107,7 @@ class TUIApp {
     const mensaje = 'Iniciando sistema...';
     const frames = ['|', '/', '-', '\\'];
 
-    for (let i = 0; i < 24; i++) { 
+    for (let i = 0; i < 24; i++) {
       const frame = frames[i % frames.length];
       process.stdout.write(`\r${mensaje} ${frame} `);
       await sleep(80);
@@ -195,8 +195,8 @@ class TUIApp {
       case 'low_stock':
         await this.mostrarStockBajo();
         break;
-      case 'edit_low_stock':             
-        await this.editarStockBajoTUI(); 
+      case 'edit_low_stock':
+        await this.editarStockBajoTUI();
         break;
       case 'back':
         await this.showMainMenu();
@@ -208,7 +208,7 @@ class TUIApp {
     this.clearScreen('TODOS LOS PRODUCTOS');
 
     try {
-      const productos = this.productManager.getAllProducts();
+      const productos = await this.productManager.getAllProducts();
 
       if (productos.length === 0) {
         console.log(chalk.yellow('📭 No hay productos registrados en el sistema.'));
@@ -310,14 +310,14 @@ class TUIApp {
     ]);
 
     try {
-      const producto = this.productManager.addProduct({
+      const producto = await this.productManager.addProduct({
         nombre: answers.nombre,
-        precioCompra: answers.precio_compra,
-        precioVenta: answers.precio_venta,
-        stock: answers.stock,
         categoria: answers.categoria,
-        codigoBarras: answers.codigo_barras || null,
-        stockMinimo: answers.stock_minimo,
+        precio_compra: answers.precio_compra,
+        precio_venta: answers.precio_venta,
+        stock: answers.stock,
+        stock_minimo: answers.stock_minimo,
+        codigo_barras: answers.codigo_barras || null,
       });
 
       console.log(chalk.green('\n✅ ¡Producto agregado exitosamente!'));
@@ -349,7 +349,7 @@ class TUIApp {
     this.clearScreen('EDITAR PRODUCTO');
 
     try {
-      const productos = this.productManager.getAllProducts();
+      const productos = await this.productManager.getAllProducts();
 
       if (productos.length === 0) {
         console.log(chalk.yellow('📭 No hay productos para editar.'));
@@ -370,7 +370,7 @@ class TUIApp {
         },
       ]);
 
-      const producto = this.productManager.getProductById(productoChoice.productoId);
+      const producto = await this.productManager.getProductById(productoChoice.productoId);
 
       if (!producto) {
         console.log(chalk.red('❌ Producto no encontrado.'));
@@ -435,7 +435,10 @@ class TUIApp {
       if (Object.keys(updateData).length === 0) {
         console.log(chalk.yellow('ℹ️ No se realizaron cambios.'));
       } else {
-        const productoActualizado = this.productManager.updateProduct(producto.id, updateData);
+        const productoActualizado = await this.productManager.updateProduct(
+          producto.id,
+          updateData
+        );
         console.log(chalk.green('\n✅ ¡Producto actualizado exitosamente!'));
         console.log(`📝 Nombre: ${chalk.cyan(productoActualizado.nombre)}`);
         console.log(
@@ -455,7 +458,7 @@ class TUIApp {
     this.clearScreen('ELIMINAR PRODUCTO');
 
     try {
-      const productos = this.productManager.getAllProducts();
+      const productos = await this.productManager.getAllProducts();
 
       if (productos.length === 0) {
         console.log(chalk.yellow('📭 No hay productos para eliminar.'));
@@ -476,7 +479,7 @@ class TUIApp {
         },
       ]);
 
-      const producto = this.productManager.getProductById(productoChoice.productoId);
+      const producto = await this.productManager.getProductById(productoChoice.productoId);
 
       if (!producto) {
         console.log(chalk.red('❌ Producto no encontrado.'));
@@ -495,7 +498,7 @@ class TUIApp {
       ]);
 
       if (confirmacion.confirmar) {
-        this.productManager.deleteProduct(producto.id);
+        await this.productManager.deleteProduct(producto.id);
         console.log(chalk.green(`\n✅ ¡Producto "${producto.nombre}" eliminado exitosamente!`));
       } else {
         console.log(chalk.yellow('❌ Eliminación cancelada.'));
@@ -531,6 +534,7 @@ class TUIApp {
     }
 
     try {
+      const allProducts = await this.productManager.getAllProducts();
       let productos = [];
       let termino = '';
 
@@ -543,11 +547,9 @@ class TUIApp {
           },
         ]);
         termino = busqueda.termino.toLowerCase();
-        productos = this.productManager
-          .getAllProducts()
-          .filter((p) => p.nombre.toLowerCase().includes(termino));
+        productos = allProducts.filter((p) => p.nombre.toLowerCase().includes(termino));
       } else if (searchType.tipo === 'categoria') {
-        const categorias = [...new Set(this.productManager.getAllProducts().map((p) => p.categoria))];
+        const categorias = [...new Set(allProducts.map((p) => p.categoria))];
         const categoriaChoice = await inquirer.prompt([
           {
             type: 'list',
@@ -557,11 +559,9 @@ class TUIApp {
           },
         ]);
         termino = categoriaChoice.categoria;
-        productos = this.productManager
-          .getAllProducts()
-          .filter((p) => p.categoria === categoriaChoice.categoria);
+        productos = allProducts.filter((p) => p.categoria === categoriaChoice.categoria);
       } else if (searchType.tipo === 'stock_bajo') {
-        productos = this.productManager.getLowStockProducts();
+        productos = await this.productManager.getLowStockProducts();
         termino = 'stock bajo';
       }
 
@@ -619,7 +619,7 @@ class TUIApp {
     this.clearScreen('PRODUCTOS CON STOCK BAJO');
 
     try {
-      const productos = this.productManager.getLowStockProducts();
+      const productos = await this.productManager.getLowStockProducts();
 
       if (productos.length === 0) {
         console.log(chalk.green('✅ ¡Excelente! No hay productos con stock bajo.'));
@@ -647,21 +647,21 @@ class TUIApp {
     await this.showProductsMenu();
   }
 
-    async editarStockBajoTUI() {
+  async editarStockBajoTUI() {
     this.clearScreen('EDITAR STOCK DE PRODUCTOS CON STOCK BAJO');
 
     try {
-      const productos = this.productManager.getLowStockProducts();
-
-      if (!productos.length) {
-        console.log('✅ ¡Excelente! No hay productos con stock bajo.');
-        await this.waitForContinue();
-        return;
-      }
-
       let seguir = true;
 
       while (seguir) {
+        const productos = await this.productManager.getLowStockProducts();
+
+        if (!productos.length) {
+          console.log('✅ ¡Excelente! No hay productos con stock bajo.');
+          await this.waitForContinue();
+          return;
+        }
+
         const { productoId } = await inquirer.prompt([
           {
             type: 'list',
@@ -674,7 +674,7 @@ class TUIApp {
           },
         ]);
 
-        const producto = this.productManager.getProductById(productoId);
+        const producto = await this.productManager.getProductById(productoId);
         if (!producto) {
           console.log('❌ Producto no encontrado.');
           break;
@@ -690,7 +690,7 @@ class TUIApp {
           },
         ]);
 
-        this.productManager.updateProduct(producto.id, { stock: nuevoStock });
+        await this.productManager.updateProduct(producto.id, { stock: nuevoStock });
 
         console.log(
           `✅ Stock actualizado. "${producto.nombre}": ${producto.stock} → ${nuevoStock}`
@@ -729,8 +729,8 @@ class TUIApp {
         choices: [
           { name: '🛒 Registrar nueva venta', value: 'register' },
           { name: '📆 Ver ventas del día', value: 'today' },
-          { name: '🗓️ Ver ventas semanales', value: 'weekly' },
-          { name: '🗓️ Ver ventas mensuales', value: 'monthly' },
+          { name: '🗓️ Ver ventas semanales (últimos 7 días)', value: 'weekly' },
+          { name: '🗓️ Ver ventas mensuales (últimos 30 días)', value: 'monthly' },
           new inquirer.Separator(),
           { name: '❌ Cancelar una venta', value: 'cancel' },
           { name: '🔙 Volver al menú principal', value: 'back' },
@@ -766,7 +766,7 @@ class TUIApp {
   async registrarVentaTUI() {
     this.clearScreen('REGISTRAR VENTA');
 
-    const productos = this.productManager.getAllProducts();
+    const productos = await this.productManager.getAllProducts();
     if (!productos.length) {
       console.log(chalk.yellow('📭 No hay productos para vender.'));
       return;
@@ -795,7 +795,7 @@ class TUIApp {
         break;
       }
 
-      const p = this.productManager.getProductById(productoId);
+      const p = await this.productManager.getProductById(productoId);
       if (!p) {
         console.log(chalk.red('❌ Producto no encontrado.'));
         continue;
@@ -852,10 +852,11 @@ class TUIApp {
 
     try {
       const res = await this.saleManager.registerSale(ventaProductos, metodo, Number(monto));
-      console.log(chalk.green(`\n✅ ${res.mensaje}`));
-      console.log(`📦 Stock actualizado en ${res.productos} producto(s).`);
-      const cambio = Number(monto) - total;
-      if (cambio > 0) console.log(`💵 Cambio: ${chalk.green(this.formatBs(cambio))}`);
+      console.log(chalk.green('\n✅ Venta registrada correctamente.'));
+      console.log(`🧾 ID de venta: ${chalk.cyan(res.id)}`);
+      console.log(`💰 Total: ${chalk.green(this.formatBs(res.total))}`);
+      console.log(`💵 Cambio: ${chalk.green(this.formatBs(res.cambio))}`);
+      console.log(`🛍️ Productos en la venta: ${res.productos}`);
     } catch (err) {
       console.log(chalk.red('❌ Error al registrar venta:'), chalk.red(err.message));
     }
@@ -864,7 +865,7 @@ class TUIApp {
   async verVentasDelDiaTUI() {
     this.clearScreen('VENTAS DEL DÍA');
     try {
-      const ventas = this.saleManager.getTodaySales();
+      const ventas = await this.saleManager.getTodaySales();
       if (!ventas.length) {
         console.log(chalk.yellow('📭 No hay ventas registradas hoy.'));
         return;
@@ -887,52 +888,59 @@ class TUIApp {
   }
 
   async verVentasSemanalesTUI() {
-    this.clearScreen('VENTAS SEMANALES');
+    this.clearScreen('VENTAS SEMANALES (últimos 7 días)');
     try {
-      const { ventasPorDia, totalesSemana } = this.saleManager.getWeeklySales();
-      if (!ventasPorDia.length) {
+      const stats = await this.saleManager.getSalesStats(7);
+      if (!stats.length) {
         console.log(chalk.yellow('📭 No hay ventas en la última semana.'));
         return;
       }
 
       console.log(chalk.bold('📅 Por día:\n'));
-      ventasPorDia.forEach((d) => {
+      let totalVentas = 0;
+      let ingresosTotales = 0;
+
+      stats.forEach((d) => {
+        const ventasDia = Number(d.total_ventas);
+        const ingresosDia = Number(d.ingresos_totales);
         console.log(
-          `• ${d.fecha}: ${d.total_ventas} ventas — ${chalk.green(
-            this.formatBs(d.ingresos_totales)
+          `• ${d.fecha}: ${ventasDia} ventas — ${chalk.green(
+            this.formatBs(ingresosDia)
           )} (prom: ${this.formatBs(d.promedio_por_venta)})`
         );
+        totalVentas += ventasDia;
+        ingresosTotales += ingresosDia;
       });
 
       console.log(chalk.gray('\n=============================='));
-      console.log(`🛍️ Ventas totales: ${chalk.bold(totalesSemana.totalVentas)}`);
+      console.log(`🛍️ Ventas totales: ${chalk.bold(totalVentas)}`);
       console.log(
-        `💵 Ingresos totales: ${chalk.bold.green(
-          this.formatBs(totalesSemana.ingresosTotales)
+        `💵 Ingresos totales: ${chalk.bold.green(this.formatBs(ingresosTotales))}`
+      );
+      console.log(
+        `📈 Promedio diario: ${chalk.green(
+          this.formatBs(ingresosTotales / stats.length)
         )}`
       );
-      console.log(`💸 Efectivo: ${this.formatBs(totalesSemana.totalEfectivo)}`);
-      console.log(`💳 Tarjeta: ${this.formatBs(totalesSemana.totalTarjeta)}`);
-      console.log(`🏦 Transferencia: ${this.formatBs(totalesSemana.totalTransferencia)}`);
     } catch (e) {
       console.log(chalk.red('❌ Error:'), chalk.red(e.message));
     }
   }
 
   async verVentasMensualesTUI() {
-    this.clearScreen('VENTAS MENSUALES');
+    this.clearScreen('VENTAS MENSUALES (últimos 30 días)');
     try {
-      const meses = this.saleManager.getMonthlySales();
-      if (!meses.length) {
-        console.log(chalk.yellow('📭 No hay ventas en el último mes.'));
+      const stats = await this.saleManager.getSalesStats(30);
+      if (!stats.length) {
+        console.log(chalk.yellow('📭 No hay ventas en los últimos 30 días.'));
         return;
       }
 
-      meses.forEach((m) => {
+      stats.forEach((d) => {
         console.log(
-          `• ${m.mes}: ${m.total_ventas} ventas — ${chalk.green(
-            this.formatBs(m.ingresos_totales)
-          )} (prom: ${this.formatBs(m.promedio_por_venta)})`
+          `• ${d.fecha}: ${d.total_ventas} ventas — ${chalk.green(
+            this.formatBs(d.ingresos_totales)
+          )} (prom: ${this.formatBs(d.promedio_por_venta)})`
         );
       });
     } catch (e) {
@@ -943,7 +951,7 @@ class TUIApp {
   async verProductosMasVendidosTUI() {
     this.clearScreen('PRODUCTOS MÁS VENDIDOS');
     try {
-      const top = this.saleManager.getTopSellingProducts(10);
+      const top = await this.saleManager.getTopSellingProducts(10);
       if (!top.length) {
         console.log(chalk.yellow('📭 No hay datos de ventas aún.'));
         return;
@@ -964,7 +972,7 @@ class TUIApp {
   async verEstadisticasAvanzadasTUI() {
     this.clearScreen('ESTADÍSTICAS (30 DÍAS)');
     try {
-      const stats = this.saleManager.getSalesStats(30);
+      const stats = await this.saleManager.getSalesStats(30);
       if (!stats.length) {
         console.log(chalk.yellow('📭 No hay suficientes datos para estadísticas.'));
         return;
@@ -983,10 +991,13 @@ class TUIApp {
         );
         console.log(chalk.gray('   ───────────────────────────────────'));
 
-        totalVentas += Number(d.total_ventas);
-        totalIngresos += Number(d.ingresos_totales);
-        if (Number(d.ingresos_totales) > mejorDia.ingresos) {
-          mejorDia = { fecha: d.fecha, ingresos: Number(d.ingresos_totales) };
+        const ventasDia = Number(d.total_ventas);
+        const ingresosDia = Number(d.ingresos_totales);
+
+        totalVentas += ventasDia;
+        totalIngresos += ingresosDia;
+        if (ingresosDia > mejorDia.ingresos) {
+          mejorDia = { fecha: d.fecha, ingresos: ingresosDia };
         }
       });
 
@@ -1012,7 +1023,7 @@ class TUIApp {
   async cancelarVentaTUI() {
     this.clearScreen('CANCELAR VENTA');
     try {
-      const ventas = this.saleManager.getTodaySales();
+      const ventas = await this.saleManager.getTodaySales();
       if (!ventas.length) {
         console.log(chalk.yellow('📭 No hay ventas recientes para cancelar.'));
         return;
@@ -1032,16 +1043,16 @@ class TUIApp {
         },
       ]);
 
-      const detalle = this.saleManager.getSaleDetail(ventaId);
-      console.log(chalk.bold('\n📋 DETALLE DE LA VENTA'));
-      console.log(`   Fecha: ${this.toLocal(detalle.venta.fecha_hora)}`);
-      console.log(`   Total: ${chalk.green(this.formatBs(detalle.venta.total))}`);
-      console.log('   🛍️ Productos:');
-      detalle.detalles.forEach((d) => {
-        console.log(
-          `      - ${d.producto_nombre} x${d.cantidad} — ${this.formatBs(d.subtotal)}`
-        );
-      });
+      const ventaSeleccionada = ventas.find((v) => v.id === ventaId);
+      if (!ventaSeleccionada) {
+        console.log(chalk.red('❌ Venta no encontrada.'));
+        return;
+      }
+
+      console.log(chalk.bold('\n📋 RESUMEN DE LA VENTA'));
+      console.log(`   Fecha: ${this.toLocal(ventaSeleccionada.fecha_hora)}`);
+      console.log(`   Total: ${chalk.green(this.formatBs(ventaSeleccionada.total))}`);
+      console.log(`   Items: ${ventaSeleccionada.total_productos}`);
 
       const { confirm } = await inquirer.prompt([
         {
@@ -1057,7 +1068,7 @@ class TUIApp {
         return;
       }
 
-      const res = this.saleManager.cancelSale(ventaId);
+      const res = await this.saleManager.cancelSale(ventaId);
       console.log(chalk.green(res.mensaje));
       console.log(chalk.green('📦 Stock restaurado.'));
     } catch (e) {
@@ -1068,7 +1079,7 @@ class TUIApp {
   async generarPDFbajoStockTUI() {
     this.clearScreen('PDF: STOCK BAJO');
     try {
-      const productos = this.saleManager.getLowStockProductsByCategory();
+      const productos = await this.saleManager.getLowStockProductsByCategory();
       if (!productos.length) {
         console.log(chalk.green('✅ No hay productos con stock bajo.'));
         return;
@@ -1152,5 +1163,15 @@ class TUIApp {
   }
 }
 
-const app = new TUIApp();
-app.iniciar();
+// ARRANQUE: primero inicializar BD con Sequelize, luego la TUI
+(async () => {
+  try {
+    console.log('🗄️ Inicializando base de datos (TUI)...');
+    await initDatabase();
+    const app = new TUIApp();
+    await app.iniciar();
+  } catch (err) {
+    console.error('❌ Error al iniciar la TUI:', err.message);
+    process.exit(1);
+  }
+})();
