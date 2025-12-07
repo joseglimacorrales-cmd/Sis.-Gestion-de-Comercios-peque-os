@@ -2,9 +2,9 @@
 const { Product } = require('../models');
 
 class ProductManager {
-  // ========= HELPERS DE VALIDACIÓN =========
+  // ========= HELPERS DE VALIDACION =========
 
-  // Valida y convierte a número
+  // Valida y convierte a numero
   parseNumber(value, fieldName, { min = null, max = null } = {}) {
     const n = Number(value);
     if (Number.isNaN(n)) {
@@ -21,7 +21,7 @@ class ProductManager {
     return n;
   }
 
-  // Valida texto (trim, longitud mínima/máxima)
+  // Valida texto
   sanitizeText(text, fieldName, { minLen = 0, maxLen = 255 } = {}) {
     const value = (text || '').trim();
     if (minLen > 0 && value.length < minLen) {
@@ -41,7 +41,7 @@ class ProductManager {
 
   async addProduct(data) {
     try {
-      // Nombre obligatorio y único
+      // Nombre obligatorio y unico
       const nombre = this.sanitizeText(data.nombre, 'Nombre', {
         minLen: 3,
         maxLen: 80,
@@ -57,14 +57,14 @@ class ProductManager {
         );
       }
 
-      // Categoría (opcional, con límite de longitud)
+      // Categoria
       const categoria = this.sanitizeText(
         data.categoria || 'General',
         'Categoría',
         { minLen: 0, maxLen: 40 }
       );
 
-      // Números
+      // Numeros
       const precio_compra = this.parseNumber(
         data.precio_compra,
         'Precio de compra',
@@ -93,7 +93,7 @@ class ProductManager {
         { min: 0, max: 1_000_000 }
       );
 
-      // Código de barras (opcional)
+      // Codigo de barras (opcional)
       let codigo_barras = (data.codigo_barras || '').trim();
       if (codigo_barras === '') {
         codigo_barras = null;
@@ -102,10 +102,6 @@ class ProductManager {
           'El código de barras no puede superar 64 caracteres.'
         );
       }
-      // Si quieres que sea solo numérico, descomenta:
-      // if (codigo_barras && !/^[0-9]+$/.test(codigo_barras)) {
-      //   throw new Error('El código de barras solo puede contener dígitos.');
-      // }
 
       const creado = await Product.create({
         nombre,
@@ -117,7 +113,6 @@ class ProductManager {
         codigo_barras,
       });
 
-      // 🔁 Devolver objeto plano para que Electron lo serialice bien
       return creado.get({ plain: true });
     } catch (e) {
       throw new Error(`Error al agregar producto: ${e.message}`);
@@ -131,7 +126,6 @@ class ProductManager {
         order: [['id', 'ASC']],
       });
 
-      // 🔁 Convertimos todos a objetos “plain”
       return productos.map((p) => p.get({ plain: true }));
     } catch (e) {
       throw new Error(`Error al obtener productos: ${e.message}`);
@@ -144,7 +138,6 @@ class ProductManager {
         where: { id, activo: true },
       });
 
-      // 🔁 Devolver null o el objeto plano
       return prod ? prod.get({ plain: true }) : null;
     } catch (e) {
       throw new Error(`Error al obtener producto: ${e.message}`);
@@ -175,7 +168,7 @@ class ProductManager {
         toUpdate.nombre = nombre;
       }
 
-      // Categoría
+      // Categoria
       if (changes.categoria !== undefined) {
         toUpdate.categoria = this.sanitizeText(
           changes.categoria,
@@ -201,7 +194,7 @@ class ProductManager {
         );
       }
 
-      // Verificar coherencia de precios si se cambió alguno
+      // Verificar coherencia de precios si se cambio alguno
       if (
         toUpdate.precio_compra !== undefined ||
         toUpdate.precio_venta !== undefined
@@ -229,7 +222,7 @@ class ProductManager {
         });
       }
 
-      // Stock mínimo
+      // Stock minimo
       if (changes.stock_minimo !== undefined) {
         toUpdate.stock_minimo = this.parseNumber(
           changes.stock_minimo,
@@ -238,7 +231,7 @@ class ProductManager {
         );
       }
 
-      // Código de barras
+      // Codigo de barras
       if (changes.codigo_barras !== undefined) {
         let codigo_barras = (changes.codigo_barras || '').trim();
         if (codigo_barras === '') {
@@ -248,15 +241,10 @@ class ProductManager {
             'El código de barras no puede superar 64 caracteres.'
           );
         }
-        // Validación numérica opcional:
-        // if (codigo_barras && !/^[0-9]+$/.test(codigo_barras)) {
-        //   throw new Error('El código de barras solo puede contener dígitos.');
-        // }
-
         toUpdate.codigo_barras = codigo_barras;
       }
 
-      // Si no hay cambios, devolver el producto actual (plano)
+      // Si no hay cambios, devolver el producto actual
       if (Object.keys(toUpdate).length === 0) {
         return this.getProductById(id);
       }
@@ -291,7 +279,6 @@ class ProductManager {
         return p.stock <= minimo;
       });
 
-      // 🔁 También devolvemos plano por consistencia
       return bajos.map((p) => p.get({ plain: true }));
     } catch (e) {
       throw new Error(

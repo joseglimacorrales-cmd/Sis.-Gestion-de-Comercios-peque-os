@@ -14,8 +14,11 @@
   "author": "",
   "type": "commonjs",
   "main": "3-desktop/main.js",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --runInBand --detectOpenHandles",
+    "test:coverage": "jest --runInBand --coverage",
+
     "consola": "node 1-consola/main.js",
     "tui": "node 2-tui/main.js",
     "desktop": "electron .",
@@ -24,6 +27,19 @@
     "dev": "nodemon 1-consola/main.js",
     "start": "npm run consola"
   },
+
+  "jest": {
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  },
+
   "dependencies": {
     "better-sqlite3": "^12.2.0",
     "chalk": "^4.1.2",
@@ -36,12 +52,14 @@
     "strip-ansi": "^7.1.2",
     "uuid": "^13.0.0"
   },
+
   "devDependencies": {
     "concurrently": "^9.2.1",
     "electron": "^38.0.0",
     "electron-builder": "^26.0.12",
     "electron-rebuild": "^3.2.9",
     "http-server": "^14.1.1",
+    "jest": "^30.2.0",
     "json-server": "^1.0.0-beta.3",
     "nodemon": "^3.1.10"
   }

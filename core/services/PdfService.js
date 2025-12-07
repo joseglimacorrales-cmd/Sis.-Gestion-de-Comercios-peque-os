@@ -18,18 +18,16 @@ class PdfService {
             try {
                 const doc = new PDFDocument({ margin: 50 });
                 const filePath = path.join(this.reportsDir, filename || `stock-bajo-${new Date().toISOString().split('T')[0]}.pdf`);
-                
-                // Pipe el PDF a un archivo
                 const stream = fs.createWriteStream(filePath);
                 doc.pipe(stream);
 
-                // Variables para control de páginas
+                // Variables para control de paginas
                 let yPosition = 100;
                 const pageWidth = doc.page.width - 100;
                 const marginLeft = 50;
                 const marginRight = 50;
 
-                // Función para verificar y agregar nueva página
+                // Funcion para verificar y agregar nueva pagina
                 const verificarEspacio = (alturaNecesaria = 30) => {
                     if (yPosition + alturaNecesaria > doc.page.height - 50) {
                         doc.addPage();
@@ -39,7 +37,7 @@ class PdfService {
                     return false;
                 };
 
-                // ENCABEZADO DEL DOCUMENTO (solo en primera página)
+                // ENCABEZADO DEL DOCUMENTO (solo en primera pagina)
                 doc.fontSize(20)
                    .font('Helvetica-Bold')
                    .fillColor('#2c3e50')
@@ -56,14 +54,14 @@ class PdfService {
                        width: pageWidth
                    });
 
-                // INFORMACIÓN RESUMEN
+                // INFORMACION RESUMEN
                 doc.fontSize(14)
                    .fillColor('#e74c3c')
                    .text(`Total de productos con stock bajo: ${productos.length}`, marginLeft, 120);
                 
                 yPosition = 160;
 
-                // Agrupar por categoría
+                // Agrupar por categoria
                 const productosPorCategoria = {};
                 productos.forEach(producto => {
                     if (!productosPorCategoria[producto.categoria]) {
@@ -72,14 +70,14 @@ class PdfService {
                     productosPorCategoria[producto.categoria].push(producto);
                 });
 
-                // GENERAR TABLA POR CATEGORÍA
+                // GENERAR TABLA POR CATEGORIA
                 Object.keys(productosPorCategoria).forEach(categoria => {
                     const productosCategoria = productosPorCategoria[categoria];
                     
-                    // Verificar espacio para la categoría (título + encabezados + al menos 2 productos)
+                    // Verificar espacio para la categoria
                     verificarEspacio(80);
                     
-                    // TÍTULO DE CATEGORÍA
+                    // TÍTULO DE CATEGORIA
                     doc.fontSize(12)
                        .font('Helvetica-Bold')
                        .fillColor('#2c3e50')
@@ -108,7 +106,7 @@ class PdfService {
                     
                     yPosition += 10;
 
-                    // PRODUCTOS DE LA CATEGORÍA
+                    // PRODUCTOS DE LA CATEGORIA
                     doc.font('Helvetica')
                        .fontSize(10)
                        .fillColor('#2c3e50');
@@ -116,7 +114,7 @@ class PdfService {
                     productosCategoria.forEach(producto => {
                         // Verificar espacio para cada fila
                         if (verificarEspacio(25)) {
-                            // Redibujar encabezados si hay nueva página
+                            // Redibujar encabezados si hay nueva pagina
                             doc.fontSize(10)
                                .font('Helvetica-Bold')
                                .fillColor('#34495e');
@@ -148,7 +146,7 @@ class PdfService {
                         doc.text(producto.stock.toString(), marginLeft + 160, yPosition, { width: 80 });
                         doc.text(producto.stock_minimo.toString(), marginLeft + 250, yPosition, { width: 80 });
                         
-                        // FALTANTE EN ROJO SI ES CRÍTICO
+                        // FALTANTE EN ROJO SI ES CRITICO
                         if (faltante > 0) {
                             doc.fillColor('#e74c3c')
                                .text(faltante.toString(), marginLeft + 340, yPosition, { width: 60 })
@@ -162,7 +160,7 @@ class PdfService {
                         yPosition += 20;
                     });
 
-                    yPosition += 15; // Espacio entre categorías
+                    yPosition += 15; // Espacio entre categorias
                 });
 
                 doc.end();

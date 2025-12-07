@@ -1,4 +1,4 @@
-// CAMBIO DE PANTALLAS DEL SIDEBAR (solo los que tienen data-screen)
+// CAMBIO DE PANTALLAS DEL SIDEBAR
 document.querySelectorAll(".nav-item:not(.nav-item-exit)").forEach((btn) => {
   btn.addEventListener("click", () => {
     document
@@ -65,7 +65,7 @@ async function initProductsScreen() {
       form.categoria.value = "General";
       form.stock.value = 0;
       form.stock_minimo.value = 5;
-      await loadProductsTable(); // refrescar tabla
+      await loadProductsTable();
     } catch (err) {
       alertModal.open(
         "error",
@@ -161,7 +161,7 @@ window.deleteProduct = function (id) {
   const backdrop = document.getElementById("delete-modal-backdrop");
   const text = document.getElementById("delete-modal-text");
 
-  // Si tenemos el producto en caché, mostramos el nombre
+  // Si tenemos el producto en cache, mostramos el nombre
   const prod = allProductsCache.find((p) => p.id == id);
   if (prod && text) {
     text.textContent = `¿Seguro que deseas eliminar el producto "${prod.nombre}"?`;
@@ -216,7 +216,7 @@ function setupEditModal() {
   });
 }
 
-// función global para usar en onclick
+// funcion global para usar en onclick
 window.editProduct = async function (id) {
   editingProductId = id;
 
@@ -276,6 +276,8 @@ async function initSalesScreen() {
   ventaProductsCache = res.data || [];
 
   const select = document.getElementById("venta-producto-select");
+  if (!select) return;
+
   select.innerHTML = "";
   ventaProductsCache.forEach((p) => {
     const opt = document.createElement("option");
@@ -286,21 +288,46 @@ async function initSalesScreen() {
     select.appendChild(opt);
   });
 
-  document
-    .getElementById("btn-venta-agregar")
-    .addEventListener("click", handleAgregarItemVenta);
+  // Boton agregar al carrito
+  const btnAgregar = document.getElementById("btn-venta-agregar");
+  if (btnAgregar) {
+    btnAgregar.addEventListener("click", handleAgregarItemVenta);
+  }
 
-  document
-    .getElementById("btn-venta-registrar")
-    .addEventListener("click", handleRegistrarVenta);
+  // Boton registrar venta
+  const btnRegistrar = document.getElementById("btn-venta-registrar");
+  if (btnRegistrar) {
+    btnRegistrar.addEventListener("click", handleRegistrarVenta);
+  }
 
-  document
-    .getElementById("btn-ventas-hoy-refrescar")
-    .addEventListener("click", loadVentasHoy);
+  // Boton "Hoy"
+  const btnHoy = document.getElementById("btn-ventas-hoy-refrescar");
+  if (btnHoy) {
+    btnHoy.addEventListener("click", async () => {
+      // limpiamos el cuadro de periodo para que no se vea pegado
+      const box = document.getElementById("ventas-periodo-resumen");
+      if (box) box.textContent = "";
+      await loadVentasHoy();
+    });
+  }
 
+  // Botón "Ultimos 7 dias"
+  const btn7d = document.getElementById("btn-ventas-7d");
+  if (btn7d) {
+    btn7d.addEventListener("click", () => loadVentasPeriodo(7));
+  }
+
+  // Botón "Ultimos 30 dias"
+  const btn30d = document.getElementById("btn-ventas-30d");
+  if (btn30d) {
+    btn30d.addEventListener("click", () => loadVentasPeriodo(30));
+  }
+
+  // Cargar ventas de hoy y renderizar carrito vacío
   await loadVentasHoy();
   renderVentaItems();
 }
+
 
 function renderVentaItems() {
   const tbody = document.getElementById("venta-items-tbody");
@@ -348,14 +375,32 @@ function handleAgregarItemVenta(e) {
     alertModal.open("error", "Error", "Producto no encontrado.");
     return;
   }
-  if (cantidad <= 0 || cantidad > p.stock) {
-    alertModal.open(
-      "warning",
-      "Cantidad inválida",
-      `Cantidad inválida. Debe ser >0 y ≤ ${p.stock}`
-    );
-    return;
-  }
+  if (cantidad <= 0) {
+  alertModal.open(
+    "warning",
+    "Cantidad inválida",
+    "La cantidad debe ser mayor que 0."
+  );
+  return;
+}
+
+if (p.stock === 0) {
+  alertModal.open(
+    "warning",
+    "Sin stock",
+    `El producto "${p.nombre}" no tiene stock disponible.`
+  );
+  return;
+}
+
+if (cantidad > p.stock) {
+  alertModal.open(
+    "warning",
+    "Stock insuficiente",
+    `Solo hay ${p.stock} unidades disponibles de "${p.nombre}".`
+  );
+  return;
+}
 
   const subtotal = Number(p.precio_venta) * cantidad;
   ventaItems.push({
@@ -412,7 +457,7 @@ async function handleRegistrarVenta(e) {
   renderVentaItems();
   document.getElementById("venta-monto").value = "";
 
-  // Refrescar ventas del día y productos (stock)
+  // Refrescar ventas del dia y productos (stock)
   await loadVentasHoy();
   if (typeof loadProductsTable === "function") {
     await loadProductsTable();
@@ -421,6 +466,8 @@ async function handleRegistrarVenta(e) {
 
 async function loadVentasHoy() {
   const cont = document.getElementById("ventas-hoy-lista");
+  if (!cont) return;
+
   cont.innerHTML = "Cargando...";
   const res = await window.api.sales.today();
   if (!res.ok) {
@@ -434,29 +481,147 @@ async function loadVentasHoy() {
     return;
   }
 
-  const total = ventas.reduce((s, v) => s + Number(v.total), 0);
+  const totalDia = ventas.reduce((s, v) => s + Number(v.total), 0);
 
-  cont.innerHTML = `
-    <ul class="ventas-ul">
-      ${ventas
-        .map(
-          (v) => `
-        <li>
-          <div><strong>#${v.id}</strong> — ${toLocal(v.fecha_hora)}</div>
-          <div>Total: <strong>${formatBs(v.total)}</strong> — Items: ${
-            v.total_productos
-          }</div>
-        </li>
-      `
-        )
-        .join("")}
-    </ul>
+  let html = '<ul class="ventas-ul">';
+
+  for (const v of ventas) {
+    // Detalle de productos de la venta
+    let detallesHtml = "";
+    if (v.detalles && v.detalles.length) {
+      detallesHtml =
+        '<div class="venta-detalle-lista">' +
+        v.detalles
+          .map(
+            (d) => `
+          <div class="venta-detalle-line">
+            <span>${d.cantidad} x ${d.nombre}</span>
+            <span>${formatBs(d.subtotal)}</span>
+          </div>
+        `
+          )
+          .join("") +
+        "</div>";
+    }
+
+    html += `
+      <li>
+        <div><strong>#${v.id}</strong> — ${toLocal(v.fecha_hora)}</div>
+        <div>
+          Total: <strong>${formatBs(v.total)}</strong>
+          &nbsp;—&nbsp; Items: ${v.total_productos}
+        </div>
+
+        <div>
+      Pago: <strong>${v.metodo_pago}</strong>
+      &nbsp;| Recibido: <strong>${formatBs(v.monto_pagado)}</strong>
+      &nbsp;| Cambio: <strong>${formatBs(v.cambio)}</strong>
+        </div>
+        ${detallesHtml}
+        <div class="ventas-hoy-actions">
+          <button class="btn btn-small btn-danger" data-cancel-venta-id="${v.id}">
+            ❌ Cancelar venta
+          </button>
+        </div>
+      </li>
+    `;
+  }
+
+  html += `</ul>
     <div class="ventas-resumen">
-      <strong>Ventas:</strong> ${ventas.length} &nbsp;|&nbsp;
-      <strong>Total del día:</strong> ${formatBs(total)}
+      <strong>Ventas:</strong> ${ventas.length}
+      &nbsp;|&nbsp;
+      <strong>Total del día:</strong> ${formatBs(totalDia)}
     </div>
   `;
+
+  cont.innerHTML = html;
+
+  // Conectar botones "Cancelar venta"
+  cont
+    .querySelectorAll("button[data-cancel-venta-id]")
+    .forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = Number(btn.dataset.cancelVentaId);
+        const confirmar = window.confirm(
+          `¿Cancelar la venta #${id}? Esto restaurará el stock.`
+        );
+        if (!confirmar) return;
+
+        const resCancel = await window.api.sales.cancel(id);
+        if (!resCancel.ok) {
+          alertModal.open(
+            "error",
+            "Error al cancelar venta",
+            "No se pudo cancelar la venta: " + resCancel.error
+          );
+          return;
+        }
+
+        alertModal.open(
+          "success",
+          "Venta cancelada",
+          "La venta fue cancelada y el stock fue restaurado."
+        );
+
+        await loadVentasHoy();
+        if (typeof loadProductsTable === "function") {
+          await loadProductsTable();
+        }
+      });
+    });
 }
+
+
+async function loadVentasPeriodo(days) {
+  const box = document.getElementById("ventas-periodo-resumen");
+  if (!box) return;
+  const hoyCont = document.getElementById("ventas-hoy-lista");
+  if (hoyCont && !hoyCont.querySelector("ul")) {
+    hoyCont.textContent = "";
+  }
+
+  box.textContent = "Cargando...";
+  const res = await window.api.reports.stats(days);
+  if (!res.ok) {
+    box.textContent = "Error: " + res.error;
+    return;
+  }
+
+  const stats = res.data || [];
+  if (!stats.length) {
+    box.textContent = "Sin ventas en el periodo seleccionado.";
+    return;
+  }
+
+  let totalVentas = 0;
+  let totalIngresos = 0;
+
+  const lines = stats.map((d) => {
+    const ventasDia = Number(d.total_ventas);
+    const ingresosDia = Number(d.ingresos_totales);
+    totalVentas += ventasDia;
+    totalIngresos += ingresosDia;
+
+    return `• ${d.fecha}: ${ventasDia} ventas — ${formatBs(
+      ingresosDia
+    )} (prom: ${formatBs(d.promedio_por_venta)})`;
+  });
+
+  const promedioDiario = totalIngresos / stats.length;
+
+  box.innerHTML = `
+    <pre class="report-pre">
+${lines.join("\n")}
+----------------------------
+Días con ventas: ${stats.length}
+Total de ventas: ${totalVentas}
+Ingresos totales: ${formatBs(totalIngresos)}
+Promedio diario: ${formatBs(promedioDiario)}
+    </pre>
+  `;
+}
+
 
 /* ===================== REPORTES (SCREEN-REPORTES) ===================== */
 
@@ -591,7 +756,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const mensajes = [
     "Conectando con la base de datos...",
     "Cargando productos y ventas...",
-    "Acomodando las góndolas virtuales...",
     "Listo, preparando la caja...",
   ];
 
@@ -683,7 +847,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Actualizar caché y tabla como antes
+    // Actualizar cache y tabla como antes
     allProductsCache = allProductsCache.filter((p) => p.id !== id);
     loadProductsTable();
 
@@ -725,7 +889,7 @@ const alertModal = {
 
     modal.classList.add(variantClass);
 
-    // Icono según tipo
+    // Icono segun tipo
     if (iconEl) {
       const icon =
         {

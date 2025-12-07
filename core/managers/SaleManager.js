@@ -3,7 +3,7 @@ const { sequelize, Product, Sale, SaleDetail } = require('../models');
 const { Op } = require('sequelize');
 
 class SaleManager {
-  // ====== HELPERS DE VALIDACIÓN ======
+  // ====== HELPERS DE VALIDACION ======
 
   _ensureArray(value, fieldName) {
     if (!Array.isArray(value)) {
@@ -188,7 +188,7 @@ class SaleManager {
     }
   }
 
-  // ====== CONSULTAS DE VENTAS ======
+    // ====== CONSULTAS DE VENTAS ======
 
   async getTodaySales() {
     const inicio = new Date();
@@ -202,19 +202,38 @@ class SaleManager {
         fecha_hora: { [Op.between]: [inicio, fin] },
         activa: true,
       },
-      include: [{ model: SaleDetail, as: 'detalles', include: ['producto'] }],
+      include: [
+        {
+          model: SaleDetail,
+          as: 'detalles',
+          include: ['producto'],
+        },
+      ],
       order: [['fecha_hora', 'ASC']],
     });
 
     return ventas.map((v) => ({
-      id: v.id,
-      fecha_hora: v.fecha_hora,
-      total: v.total,
-      total_productos: v.detalles.reduce(
-        (s, d) => s + d.cantidad,
-        0
-      ),
-    }));
+  id: v.id,
+  fecha_hora: v.fecha_hora,
+  total: v.total,
+  total_productos: v.detalles.reduce((s, d) => s + d.cantidad, 0),
+  metodo_pago:
+    v.pago_efectivo > 0 ? "Efectivo" :
+    v.pago_tarjeta > 0 ? "Tarjeta" :
+    v.pago_transferencia > 0 ? "Transferencia" :
+    "Desconocido",
+  monto_pagado: v.pago_efectivo + v.pago_tarjeta + v.pago_transferencia,
+  cambio: v.cambio,
+
+  detalles: v.detalles.map((d) => ({
+    productoId: d.producto_id,
+    nombre: d.producto ? d.producto.nombre : "",
+    cantidad: d.cantidad,
+    precioUnitario: d.precio_unitario,
+    subtotal: d.subtotal,
+  })),
+}));
+
   }
 
   async getTopSellingProducts(limit = 10) {
@@ -307,7 +326,7 @@ class SaleManager {
     }
   }
 
-  // ====== STOCK BAJO POR CATEGORÍA ======
+  // ====== STOCK BAJO POR CATEGORIA ======
 
   async getLowStockProductsByCategory() {
     const productos = await Product.findAll({

@@ -10,8 +10,6 @@ const Product = sequelize.define(
     nombre: {
       type: DataTypes.STRING,
       allowNull: false,
-      // Pon unique: true solo cuando ya no haya repetidos
-      // unique: true,
       validate: {
         len: [3, 80],
       },

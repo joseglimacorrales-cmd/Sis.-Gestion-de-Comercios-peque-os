@@ -379,6 +379,22 @@ select:focus {
   padding: 4px 8px;
 }
 
+.btn-small {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+
+.ventas-hoy-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ventas-periodo-box {
+  margin-top: 10px;
+}
+
 .btn-danger:hover {
   background: rgba(239, 68, 68, 0.12);
   color: #fecaca;
@@ -661,11 +677,44 @@ select:focus {
   gap: 14px;
 }
 
+/* Layout específico para la pantalla de ventas */
+.cards-grid-ventas {
+  display: grid;
+  grid-template-columns: 2fr 1.3fr;
+  grid-auto-rows: min-content;
+  gap: 14px;
+}
+
+/* Posiciones en el grid */
+.card-venta-form {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+}
+
+.card-ventas-resumen {
+  grid-column: 2 / 3;
+  grid-row: 1 / 3; /* ocupa alto de las dos filas */
+}
+
+.card-ventas-dia {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+
+/* En pantallas pequeñas, que se apilen */
 @media (max-width: 1100px) {
-  .cards-grid {
+  .cards-grid-ventas {
     grid-template-columns: 1fr;
   }
+
+  .card-venta-form,
+  .card-ventas-resumen,
+  .card-ventas-dia {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
 }
+
 
 .venta-form-grid {
   display: grid;
@@ -701,6 +750,36 @@ select:focus {
   border-radius: 10px;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(31, 41, 55, 0.7);
+}
+
+.venta-detalle-lista {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.venta-detalle-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Secciones dentro de la card de Ventas */
+
+.ventas-card h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.ventas-divider {
+  margin: 14px 0 10px;
+  border-top: 1px solid rgba(15, 23, 42, 0.9);
+  opacity: 0.85;
+}
+
+.ventas-resumen-header p {
+  margin-top: 4px;
 }
 
 .ventas-resumen {
@@ -1000,4 +1079,15 @@ select:focus {
     transform: translateY(-4px);
     opacity: 1;
   }
+}
+
+select option {
+  background-color: rgba(15, 23, 42, 0.95);
+  color: #e5e7eb;                         
+  padding: 10px;
+}
+
+select option:hover {
+  background-color: rgba(37, 99, 235, 0.45);
+  color: white;
 }

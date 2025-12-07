@@ -4,7 +4,6 @@ const Product = require('./Product');
 const Sale = require('./Sale');
 const SaleDetail = require('./SaleDetail');
 
-// Relaciones
 Sale.hasMany(SaleDetail, { foreignKey: 'venta_id', as: 'detalles' });
 SaleDetail.belongsTo(Sale, { foreignKey: 'venta_id', as: 'venta' });
 
